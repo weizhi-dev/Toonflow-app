@@ -286,7 +286,7 @@ async function restoreEditingDraft() {
   editingId.value = undefined;
   draftMentions.value = draft?.mentions ?? [];
   draftAttachments.value = draft?.attachments ?? [];
-  await sender?.reset({ chatNode: draft?.model });
+  await sender?.reset(draft ? { chatNode: draft.model } : undefined);
 }
 
 async function cancelEdit() {

@@ -630,7 +630,11 @@ async function sendMessage(source?: AgentMessage) {
               messages.value.splice(resendIndex, messages.value.length - resendIndex, userMessage, reply);
               stats.value = undefined;
               contextUsage.value = undefined;
-              await instance.restoreEditingDraft();
+              // 草稿恢复依赖编辑器的渲染回调，不能阻塞画布调用和结束事件。
+              void instance.restoreEditingDraft().catch(error => {
+                console.warn("恢复编辑前草稿失败", error);
+                ElMessage.warning(translate("消息已发送，恢复编辑前草稿失败"));
+              });
             }
             accepted = true;
             ownsStream = true;
