@@ -57,13 +57,18 @@ export default function useWorkspaceFiles(directory?: MaybeRefOrGetter<string | 
     return data;
   }
 
+  async function readBlob(path: string) {
+    const { data } = await client.get<Blob>("/read", { params: { directory: getDirectory(), path }, responseType: "blob" });
+    return data;
+  }
+
   function acquireUrl(path: string, mimeType?: string) {
     const directory = getDirectory();
     const key = JSON.stringify([directory, path, mimeType]);
     let entry = fileUrls.get(key);
     if (!entry) {
-      const url = client.get<Blob>("/read", { params: { directory, path }, responseType: "blob" })
-        .then(({ data }) => URL.createObjectURL(mimeType ? new Blob([data], { type: mimeType }) : data));
+      const url = readBlob(path)
+        .then(data => URL.createObjectURL(mimeType ? new Blob([data], { type: mimeType }) : data));
       entry = { directory, path, url, users: 0 };
       fileUrls.set(key, entry);
       const current = entry;
@@ -163,5 +168,5 @@ export default function useWorkspaceFiles(directory?: MaybeRefOrGetter<string | 
   }
 
   // ACT: 当前目录逐次读取；跨 await 或防抖的操作传入目录字符串，固定本次目标。
-  return { list, read, importImage, cloneProject, exportZip, acquireUrl, readText, readJson, readTextSnapshot, writeTextSnapshot, write, writeJson, rename, copy, reveal, remove, mkdir };
+  return { list, read, readBlob, importImage, cloneProject, exportZip, acquireUrl, readText, readJson, readTextSnapshot, writeTextSnapshot, write, writeJson, rename, copy, reveal, remove, mkdir };
 }
